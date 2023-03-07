@@ -135,7 +135,7 @@ RAM: 16.0 GB, DDR4, 3200 Mhz.
 
 Just to give a reference on this machine on how much time takes to generate a voice recording with CoquiTTS.
 
-1. "Sure, what's the issue you're facing?" --- takes 0.881 seconds
+1. 37 - "Sure, what's the issue you're facing?" --- takes 0.881 seconds
 2. "Thank you! Is there anything specific you would like me to help you with today?" --- takes 1.336 seconds
 3. "As an AI assistant, I am a computer program designed to assist humans in completing tasks or answering questions. I am constantly learning and improving my abilities in various domains such as education, health, finance, and more. I can understand natural language, communicate with humans through text or speech, and perform a variety of tasks based on your needs. My goal is to make your life easier and more efficient by providing accurate information or completing tasks for you." -- takes 10.046 seconds
 

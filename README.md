@@ -60,17 +60,17 @@ Options:
 
 ## Program Loop
 
-Receiving Input: The program can receive input through text or audio recording. To record audio, 
-press the 'K' key, and release it when finished recording. Whisper API will then convert the audio 
+1. **Receiving Input**: The program can receive input through text or audio recording. To record audio,
+press the 'K' key, and release it when finished recording. Whisper API will then convert the audio
 to text for the virtual assistant to process.
 
-Virtual Assistant Receives Text: The virtual assistant receives the input and sends it to OpenAI 
+2. **Virtual Assistant Receives Text**: The virtual assistant receives the input and sends it to OpenAI.
 endpoints to generate a response.
 
-Virtual Assistant Gets Response: The virtual assistant saves the response in the chat log and passes
+3. **Virtual Assistant Gets Response**: The virtual assistant saves the response in the chat log and passes
 it to the Text-to-Speech (TTS) class.
 
-Virtual Assistant Speaks: If audio output is enabled, the virtual assistant will speak the response
+4. **Virtual Assistant Speaks**: If audio output is enabled, the virtual assistant will speak the response
 in a natural-sounding voice. The voice can be customized using the text-to-speech option.
 
 ## Options
@@ -105,10 +105,133 @@ not necessary in most cases.
 
 ## Recommendations
 
+### Chatbots
+
 When using ChatGPT you can give it instructions about its task like talking to a person and it will understand.
 GPT-3 works better if you make a prompt showing how you want to continue the text. This isn't a prompt course
 but you should experiment with the results if you want a better behavior in GPT3, ChatGPT will understand right
 off the bat, but it will refuse to roleplay later and can speak out of character very easily.
+
+Also, you could train your own tts models to have a more realistic voice or even clone a voice if you take the
+time to do so. For more info see [Coqui TTS Repo](https://github.com/coqui-ai/TTS).
+
+### Be careful with promts that provoke large messages
+
+TTS can take a long time to process with long responses from the AI. I think elevenlabs takes less time, but if you
+are using CoquiTTS, beware that this model runs on your computer, if you don't have enough resources you can have
+issues with your memory usage.
+
+I tested it in this machine:
+
+```
+HP Victus Laptop:
+
+GPU: NVidia GeForce RTX 3060 laptop.
+CPU: i7-11800H @ 2.30GHz   2.30 GHz
+RAM: 16.0 GB, DDR4, 3200 Mhz.
+```
+
+### Phrases and time
+
+Just to give a reference on this machine on how much time takes to generate a voice recording with CoquiTTS.
+
+1. "Sure, what's the issue you're facing?" --- takes 0.881 seconds
+2. "Thank you! Is there anything specific you would like me to help you with today?" --- takes 1.336 seconds
+3. "As an AI assistant, I am a computer program designed to assist humans in completing tasks or answering questions. I am constantly learning and improving my abilities in various domains such as education, health, finance, and more. I can understand natural language, communicate with humans through text or speech, and perform a variety of tasks based on your needs. My goal is to make your life easier and more efficient by providing accurate information or completing tasks for you." -- takes 10.046 seconds
+
+Sometimes ChatGPT can write a bible, be careful with that or limit the max tokens for better results. I will add it as a parameter later.
+
+## Adding custom classes
+
+If you want to add more chatbots and tts classes for your virtual assistant you should use the interfaces.
+
+1. Make your classes files.
+
+```bash
+# from the root of the repo
+touch chatbots/my_custom_gpt1000_chatbot.py
+touch tts/my_custom_hyper_realistic_voice.py
+```
+
+2. Make your classes importing interfaces.
+
+```python
+from interfaces.chatbot import ChatbotInterface
+
+class MyCustomGPT1000Chatbot(ChatbotInterface):
+    def __init__(self, your_args....) -> None:
+        pass
+
+    def get_response(self, text):
+        """Processes text to give an answer"""
+        ...
+        return answer
+```
+
+```python
+from interfaces.tts import TTSInterface
+
+class MyCustomHyperRealisticVoice(TTSInterface):
+    def __init__(self, your_args....) -> None:
+        pass
+
+    def play(self, text):
+        """Processes text and plays it"""
+        ...
+        """Speaks"""
+```
+
+3. Import your classes in main.py
+
+```python
+from chatbots.my_custom_gpt1000_chatbot import MyCustomGPT1000Chatbot
+from tts.my_custom_hyper_realistic_voice import MyCustomHyperRealisticVoice
+```
+
+4. Add options for your new classes in click commands.
+
+```python
+@click.option('--chatbot', type=click.Choice(['gpt3', 'chatgpt', 'gpt1000']), default='chatgpt', help='Type of chatbot to use')
+@click.option('--tts', type=click.Choice(['elevenlabs', 'coqui', 'realisticvoice']), default='coqui', help='Text-to-speech option')
+```
+
+5. Then add your new options and classes in the if inside `virtual_asistant()` method.
+
+```python
+pythonchatbot_instance = None
+  if chatbot == 'gpt3':
+      chatbot_instance = GPTChatbot(personality, bot_name)
+  elif chatbot == 'chatgpt':
+      chatbot_instance = ChatGPTChatbot(personality)
+  elif chatbot == 'gpt1000':
+      chatbot_instance = MyCustomGPT1000Chatbot(personality)
+  else:
+      raise ValueError("Invalid chatbot type. Should be 'gpt3', 'chatgpt' or 'gpt1000'")
+  
+  tts_instance = None
+  if tts == 'elevenlabs':
+      if not tts_voice:
+          tts_voice = "Arnold"        
+      tts_instance = ElevenLabsTTS(tts_voice)
+  elif tts == 'coqui':
+      if not tts_voice:
+          tts_voice = "tts_models/en/ljspeech/tacotron2-DDC"
+      tts_instance = CoquiTTS(tts_voice)
+  elif tts == 'realisticvoice':
+      tts_instance = MyCustomHyperrealisticVoice(your_args...)
+  else:
+      raise ValueError("Invalid chatbot type. Should be 'elevenlabs', 'coqui' or 'realisticvoice'")
+```
+
+6. Now it's ready to run.
+
+```bash
+#Execute main.py
+py main.py --chatbot=gpt1000 --tts=realisticvoice ....moar args
+```
+
+Now you have executed your custom chatbot with its own voice, you can alternate between voices and models if you like,
+testing all combinations.
 
 ## ToDo
 
